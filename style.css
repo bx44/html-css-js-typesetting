@@ -38,6 +38,19 @@ body {
     /* grid-column: 1; */
 }
 
+.mainText.lessCommentary {
+    float: initial;
+    width: initial;
+    padding: initial;   
+}
+
+.commentary.lessCommentary {
+    float: left;
+    width: 35%;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
+
 .commentary {
     font-size: 0.9em;
     /* grid-column: 2; */
@@ -59,4 +72,9 @@ body {
     top: 30%;
     right: 591px;
     direction: ltr;
+}
+
+.endOfChapter {
+    text-align: center;
+    display: block;
 }
