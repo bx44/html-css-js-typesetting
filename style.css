@@ -1,0 +1,41 @@
+body {
+    background-color: gray;
+}
+
+.page {
+    background-color: white;
+    box-shadow: 2px 2px 2px 1px black;
+    width: 561px;
+    height: 793px;
+    position: relative;
+    margin: 25px auto;
+    text-align: justify;
+    direction: rtl;
+    padding: 20px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
+}
+
+.page:nth-of-type(even) {
+    grid-template-columns: 1fr 2fr;
+}
+
+.mainText {
+    font-size: 1.2em;
+    grid-column: 1;
+}
+
+.page:nth-of-type(even) .mainText {
+    grid-column: 2;
+}
+
+.commentary {
+    font-size: 0.8em;
+    grid-column: 2;
+}
+
+.page:nth-of-type(even) .commentary {
+    grid-column: 1;
+}
