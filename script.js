@@ -1,5 +1,5 @@
 pageCounter = 0;
-pageLimit = 6;
+pageLimit = 7;
 startMasechet = "Bava_Kamma";
 startDaf = "15b";
 
@@ -15,7 +15,6 @@ console.log(currentRef);
 $.ajaxSetup({ cache: true});
 
 $(document).ready(function(){
-    addPage();
     getData();
 });
 
@@ -46,6 +45,9 @@ function addData(data){
     finished = 0;
     recoveredMain = '';
     recoveredCommentary = '';
+    if (pageCounter == 0) {
+        addPage(data);
+    }
     for(sectionCounter = 0; sectionCounter < data.he.length;){
         if(recoveredMain != '') {
             $('.page[page="'+pageCounter+'"] .mainText').append(recoveredMain);
@@ -82,6 +84,7 @@ function addData(data){
         });
 
         adjustFloats();
+        centerEndofChapter();
         
         if(isOverflowed()){
             newMain.detach();
@@ -153,7 +156,7 @@ function addData(data){
                 sectionCounter++;
             }
             if(pageCounter < pageLimit){
-                addPage();
+                addPage(data);
                 continue;
             } else {
                 if (pageCounter == pageLimit) {
@@ -169,7 +172,6 @@ function addData(data){
     }
 
     if (finished == 1 || data.next == null) {
-        centerEndofChapter();
         return;
     }
     var next = data.next.substring(0, data.next.lastIndexOf(' ')).replace(' ', '_')+'.'+data.next.substring(data.next.lastIndexOf(' ') + 1);
@@ -178,11 +180,16 @@ function addData(data){
     getData();
 }
 
-function addPage(){
+function addPage(data){
     if (isOverflowed()) addWarning('Unusual Overflow');
     pageCounter++;
-    $('body').append('<div class="page" page="'+pageCounter+'"><div class="warning"><ul></ul></div><div class="mainText"></div><div class="commentary"></div></div>');
+    $('body').append('<div class="page" page="'+pageCounter+'"><div class="warning"><ul></ul></div>'+header(data)+'<div class="mainText"></div><div class="commentary"></div></div>');
     console.log('Added page '+pageCounter);
+}
+
+function header(data) {
+    return '<div class="header">'+data.heIndexTitle+'</div>';
+
 }
 
 function getUrl(ref){
@@ -190,7 +197,8 @@ function getUrl(ref){
 }
 
 function isOverflowed(page=pageCounter){
-    return $('.page[page="'+page+'"] .commentary').outerHeight(true) >= (pageHeight - (pagePadding * 2)) || $('.page[page="'+pageCounter+'"] .mainText').outerHeight(true) >= (pageHeight - (pagePadding * 2));
+    if(pageCounter==0) return false;
+    return $('.page[page="'+page+'"] .commentary')[0].offsetTop + $('.page[page="'+page+'"] .commentary').outerHeight(true) >= (pageHeight - pagePadding ) || $('.page[page="'+page+'"] .mainText')[0].offsetTop + $('.page[page="'+pageCounter+'"] .mainText').outerHeight(true) >= (pageHeight - pagePadding);
 }
 
 function adjustFloats(page=pageCounter) {
@@ -221,7 +229,13 @@ function adjustFloats(page=pageCounter) {
 }
 
 function centerEndofChapter() {
-    $('span:contains("הדרן")').addClass('endOfChapter');
+    try {
+        $('span[ref]:contains("הדרן")').addClass('endOfChapter');
+        $('span[ref]:contains("הדרן")').height(pageHeight - $('span[ref]:contains("הדרן")')[0].offsetTop);
+    } catch {
+        
+    }
+    
 }
 
 function addWarning(warning, page=pageCounter) {
@@ -230,7 +244,7 @@ function addWarning(warning, page=pageCounter) {
 }
 
 function itsTooEmpty(page=pageCounter) {
-    var percent = biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)) * (100 / $('.page[page="'+page+'"]').height());
+    var percent = $('.page[page="'+page+'"] > *:last-child')[0].offsetTop + $('.page[page="'+page+'"] > *:last-child').height()* (100 / $('.page[page="'+page+'"]').height());
     // console.log(percent);
     // console.log(biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)));
     // console.log($('.page[page="'+page+'"]').height());

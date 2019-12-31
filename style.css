@@ -29,6 +29,13 @@ body {
     right: 591px;
 }
 
+.header {
+    text-align: center;
+    font-size: 1.5em;
+    padding-bottom: 15px;
+    font-weight: bold;
+}
+
 .mainText {
     font-size: 1.2em;
     float: right;
