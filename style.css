@@ -100,3 +100,9 @@ body {
     padding-right: 4px;
     border-left: 4px solid gray;
 }
+
+@media print {
+    .page {
+        box-shadow: none;
+    }
+}
