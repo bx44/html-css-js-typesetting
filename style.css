@@ -1,3 +1,13 @@
+@font-face {
+    font-family: Vilna;
+    src: url(./fonts/FrankRuhlLibre-Regular.ttf);
+}
+
+@font-face {
+    font-family: Rashi;
+    src: url(./fonts/BenOrRashiRegular.ttf);
+}
+
 body {
     background-color: gray;
 }
@@ -33,11 +43,15 @@ body {
     text-align: center;
     font-size: 1.5em;
     padding-bottom: 15px;
+    font-family: Vilna;
     font-weight: bold;
 }
 
 .mainText {
-    font-size: 1.2em;
+    font-family: Vilna;
+    font-size: 1.5em;
+    word-spacing: -0.15em;
+    line-height: 1.2em;
     float: right;
     width: 65%;
     padding-left: 10px;
@@ -63,7 +77,11 @@ body {
 }
 
 .commentary {
-    font-size: 0.9em;
+    font-family: Rashi;
+    font-size: 1.15em;
+    word-spacing: -0.1em;
+    line-height: 1.2em;
+    padding-top: 0.25em;
     /* grid-column: 2; */
 }
 

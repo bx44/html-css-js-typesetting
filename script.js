@@ -1,7 +1,7 @@
 pageCounter = 0;
-pageLimit = 7;
+pageLimit = 15;
 startMasechet = "Bava_Kamma";
-startDaf = "15b";
+startDaf = "2a";
 
 pageWidth = 561;
 pageHeight = 793;
@@ -233,7 +233,7 @@ function centerEndofChapter() {
         $('span[ref]:contains("הדרן")').addClass('endOfChapter');
         $('span[ref]:contains("הדרן")').height(pageHeight - $('span[ref]:contains("הדרן")')[0].offsetTop);
     } catch {
-        
+
     }
     
 }
@@ -244,8 +244,7 @@ function addWarning(warning, page=pageCounter) {
 }
 
 function itsTooEmpty(page=pageCounter) {
-    var percent = $('.page[page="'+page+'"] > *:last-child')[0].offsetTop + $('.page[page="'+page+'"] > *:last-child').height()* (100 / $('.page[page="'+page+'"]').height());
-    // console.log(percent);
+    var percent = ($('.page[page="'+page+'"] > *:last-child')[0].offsetTop + $('.page[page="'+page+'"] > *:last-child').height()) * (100 / $('.page[page="'+page+'"]').height());
     // console.log(biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)));
     // console.log($('.page[page="'+page+'"]').height());
     if (percent < 90) return true;
