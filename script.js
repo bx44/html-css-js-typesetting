@@ -1,7 +1,7 @@
 pageCounter = 0;
-pageLimit = 10;
-startMasechet = "Berakhot";
-startDaf = "2a";
+pageLimit = 6;
+startMasechet = "Bava_Kamma";
+startDaf = "15b";
 
 pageWidth = 561;
 pageHeight = 793;
@@ -44,36 +44,35 @@ function addData(data){
     // for commentary
     sectionCounter = 0;
     finished = 0;
+    recoveredMain = '';
+    recoveredCommentary = '';
     for(sectionCounter = 0; sectionCounter < data.he.length;){
+        if(recoveredMain != '') {
+            $('.page[page="'+pageCounter+'"] .mainText').append(recoveredMain);
+            recoveredMain = '';
+        }
+        if(recoveredCommentary != '') {
+            $('.page[page="'+pageCounter+'"] .commentary').append(recoveredCommentary);
+            recoveredCommentary = '';
+        }
         element = data.he[sectionCounter];
 
         var sectionRef = currentRef+'.'+sectionCounter;
         sectionRef = sectionRef.replace(' ', '_');
-        var newEl = '<span ref="'+sectionRef+'">'+element.trim() + ' </span>';
-        $('.page[page="'+pageCounter+'"] .mainText').append(newEl);
-        
-        if(isOverflowed()){
-            $('.page[page="'+pageCounter+'"] .mainText span:last-child').remove();
-            if(pageCounter < pageLimit){
-                addPage();
-                continue;
-            } else {
-                finished = 1;
-                break;
-            }
-        }
+        var newMain = $('<span ref="'+sectionRef+'">'+element.trim() + ' </span>');
+        $('.page[page="'+pageCounter+'"] .mainText').append(newMain);
 
         var commentary = data.commentary.filter(el => {
             return el.collectiveTitle.en == commentarist && el.anchorVerse == sectionCounter;
         });
+        var newContainer;
         if (commentary.length > 0) {
             // console.log(commentary);
-            newEl = '<div anchorRef="'+sectionRef+'"></div>';
-            $('.page[page="'+pageCounter+'"] .commentary').append(newEl);
+            newContainer = $('<div anchorRef="'+sectionRef+'"></div>');
+            $('.page[page="'+pageCounter+'"] .commentary').append(newContainer);
         }
         commentary.forEach(el => {
-            var comment = el.he.split(/[–-]/, 2);
-            console.log(comment);
+            var comment = el.he.split(/[–\.-](.+)/, 2);
             if (comment.length > 1) {
                 newEl = '<span ref="'+el.ref+'"><span class="commentAnchor">' + comment[0].trim() + '. </span> ' + comment[1].trim() + ' </span>';
             } else {
@@ -82,21 +81,89 @@ function addData(data){
             $('div[anchorRef="'+sectionRef.split('.').join('\\.')+'"]').append(newEl);
         });
 
+        adjustFloats();
+        
         if(isOverflowed()){
-            var lastComment = $('.page[page="'+pageCounter+'"] .commentary div:last-of-type');
-            var lastMain = $('.page[page="'+pageCounter+'"] .mainText span:last-of-type');
-            lastComment.remove();
-            lastMain.remove();
+            newMain.detach();
+            try {
+                newContainer.detach();
+            } catch(e) {
+            }                
+            adjustFloats();
+            if(itsTooEmpty()){
+                pageBeingFixed = pageCounter;
+                
+                newMain.appendTo($('.page[page="'+pageCounter+'"] .mainText'));
+                // Should check for possible overflow but low propability of it happening
+                
+                //Fixing commentary overflow
+                newContainer.children().each(function() {
+                    el = $(this);
+                    el.html(el.text());
+                    finalText = '';
+                    splitted = el.text().split(' ');
+                    for(i = 0; i < splitted.length; i++) {
+                        finalText += '<span class="tempSpan" index="'+i+'">'+splitted[i]+' </span>';
+                    }
+                    el.html(finalText);
+                });
+                newContainer.appendTo($('.page[page="'+pageCounter+'"] .commentary'));
+                overflowed = $('.page[page="'+pageCounter+'"] .commentary .tempSpan').filter((id, element) => {
+                    return $(element)[0].offsetTop + $(element).height() > (pageHeight - (pagePadding * 2));
+                });
+                for(x=1; i < overflowed.length; i++){
+                    // console.log(overflowed[x]);
+                }
+                if(overflowed.length > 0){
+                    savedText = $(overflowed[0]).text() + $(overflowed[0]).nextAll().text();
+                    ref = $(overflowed[0]).parent().attr('ref');
+                    recoveredCommentary = '<span ref="'+ref+'">'+savedText+'</span>';
+                    anchorRef = $(overflowed[0]).parent().parent().attr('anchorRef');
+                    $(overflowed[0]).parent().nextAll().each(function() {
+                        savedText = $(this).text();
+                        ref = $(this).attr('ref');
+                        recoveredCommentary += '<span ref="'+ref+'">'+savedText+'</span>';
+                    });
+                    $('.page[page="'+pageCounter+'"] .commentary').addClass('continues');
+                    $(overflowed[0]).nextAll().remove();
+                    $(overflowed[0]).parent().nextAll().remove();
+                    $(overflowed[0]).remove();
+                    recoveredCommentary = '<div anchorRef="'+anchorRef+'" class="isContinuation">'+recoveredCommentary+'</div>';
+                }
+
+                //Fixing mainText overflow
+                finalText = '';
+                newMain.html().split(' ').forEach((element) => {
+                    finalText += '<span class="tempSpan">'+element+' </span>';
+                });
+                newMain.html(finalText);
+                ref = newMain.attr('ref');
+
+                overflowed = $('.page[page="'+pageBeingFixed+'"] .mainText .tempSpan').filter((id, element) => {
+                    return $(element)[0].offsetTop + $(element).height() > (pageHeight - (pagePadding * 2));
+                });
+                if (overflowed.length > 0) {
+                    recoveredMain = $(overflowed[0]).text() + $(overflowed[0]).nextAll().text();
+                    recoveredMain = '<span ref="'+ref+'" class="isContinuation">'+recoveredMain+'</span>';
+                    $('.page[page="'+pageCounter+'"] .mainText').addClass('continues');
+                    $(overflowed[0]).nextAll().remove();
+                    $(overflowed[0]).remove();
+                }
+                
+                sectionCounter++;
+            }
             if(pageCounter < pageLimit){
                 addPage();
                 continue;
             } else {
-                finished = 0;
+                if (pageCounter == pageLimit) {
+                    finished = 1;
+                } else {
+                    finished = 0;
+                }
                 break;
             }
         }
-
-        adjustFloats();
 
         sectionCounter++;
     }
@@ -112,8 +179,9 @@ function addData(data){
 }
 
 function addPage(){
+    if (isOverflowed()) addWarning('Unusual Overflow');
     pageCounter++;
-    $('body').append('<div class="page" page="'+pageCounter+'"><div class="mainText"></div><div class="commentary"></div></div>');
+    $('body').append('<div class="page" page="'+pageCounter+'"><div class="warning"><ul></ul></div><div class="mainText"></div><div class="commentary"></div></div>');
     console.log('Added page '+pageCounter);
 }
 
@@ -154,4 +222,23 @@ function adjustFloats(page=pageCounter) {
 
 function centerEndofChapter() {
     $('span:contains("הדרן")').addClass('endOfChapter');
+}
+
+function addWarning(warning, page=pageCounter) {
+    $('.page[page="'+page+'"] .warning ul').append('<li>'+warning+'</li>');
+    console.warn(warning+' On page '+page+'.');
+}
+
+function itsTooEmpty(page=pageCounter) {
+    var percent = biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)) * (100 / $('.page[page="'+page+'"]').height());
+    // console.log(percent);
+    // console.log(biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)));
+    // console.log($('.page[page="'+page+'"]').height());
+    if (percent < 90) return true;
+    return false;
+}
+
+function biggerNumber(a, b){
+    if (a > b) return a;
+    return b;
 }
