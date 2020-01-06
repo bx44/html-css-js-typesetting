@@ -15,8 +15,15 @@ console.log(currentRef);
 $.ajaxSetup({ cache: true});
 
 $(document).ready(function(){
-    getData();
+    $('#start').click(start);
+    $('#masechet').change(function() {
+        startMasechet = $('#masechet').val();
+    });
 });
+
+function start(){
+    getData();
+}
 
 function getData(){
     if(localStorage.getItem(currentRef) == null){
@@ -114,9 +121,6 @@ function addData(data){
                 overflowed = $('.page[page="'+pageCounter+'"] .commentary .tempSpan').filter((id, element) => {
                     return $(element)[0].offsetTop + $(element).height() > (pageHeight - (pagePadding * 2));
                 });
-                for(x=1; i < overflowed.length; i++){
-                    // console.log(overflowed[x]);
-                }
                 if(overflowed.length > 0){
                     savedText = $(overflowed[0]).text() + $(overflowed[0]).nextAll().text();
                     ref = $(overflowed[0]).parent().attr('ref');
@@ -182,6 +186,7 @@ function addData(data){
 
 function addPage(data){
     if (isOverflowed()) addWarning('Unusual Overflow');
+    if(pageCounter > 0 && itsTooEmpty()) addWarning('Too empty.');
     pageCounter++;
     $('body').append('<div class="page" page="'+pageCounter+'"><div class="warning"><ul></ul></div>'+header(data)+'<div class="mainText"></div><div class="commentary"></div></div>');
     console.log('Added page '+pageCounter);
@@ -254,4 +259,15 @@ function itsTooEmpty(page=pageCounter) {
 function biggerNumber(a, b){
     if (a > b) return a;
     return b;
+}
+
+function fillLastLine(page=pageCounter) {
+    $('.page[page="'+page+'"] .commentary div:last-child > span:last-child').append('<span class="end"></span>');
+    console.log($('.end'));
+    if ($('.end')[0].offsetLeft < (pageWidth / 2)) {
+        // return 'left';
+    }
+    else {
+        return 'right';
+    }
 }
