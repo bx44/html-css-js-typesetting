@@ -1,11 +1,11 @@
 pageCounter = 0;
 pageLimit = 15;
-startMasechet = "Bava_Kamma";
+startMasechet = "Bava_Batra";
 startDaf = "2a";
 
 pageWidth = 561;
 pageHeight = 793;
-pagePadding = 20;
+pageVerticalPadding = 20;
 
 commentarist = "Rashi";
 
@@ -15,10 +15,13 @@ console.log(currentRef);
 $.ajaxSetup({ cache: true});
 
 $(document).ready(function(){
+    WebFont.load({
+        custom: {
+          families: ['Vilna', 'Rashi']
+        }
+      });
     $('#start').click(start);
-    $('#masechet').change(function() {
-        startMasechet = $('#masechet').val();
-    });
+    // getData();
 });
 
 function start(){
@@ -26,6 +29,7 @@ function start(){
 }
 
 function getData(){
+    // ges data on page by page basis
     if(localStorage.getItem(currentRef) == null){
         $.getJSON(getUrl(currentRef)).done(function(data){
             try {
@@ -45,25 +49,34 @@ function getData(){
     }
 }
 
+recoveredMain = '';
+recoveredCommentary = '';
+recoveredRef = '';
+
 function addData(data){
     //console.log(data);
     // for commentary
     sectionCounter = 0;
     finished = 0;
-    recoveredMain = '';
-    recoveredCommentary = '';
     if (pageCounter == 0) {
         addPage(data);
     }
-    for(sectionCounter = 0; sectionCounter < data.he.length;){
-        if(recoveredMain != '') {
-            $('.page[page="'+pageCounter+'"] .mainText').append(recoveredMain);
-            recoveredMain = '';
+    for(sectionCounter = 0; sectionCounter < data.he.length; sectionCounter++){
+        if(emptyPage()){
+            if(recoveredMain != '') {
+                $('.page[page="'+pageCounter+'"] .mainText').append(recoveredMain);
+                recoveredMain = '';
+            }
+            if(recoveredRef != '') {
+                $('.page[page="'+pageCounter+'"] .reference').append(recoveredRef);
+                recoveredRef = '';
+            }
+            if(recoveredCommentary != '') {
+                $('.page[page="'+pageCounter+'"] .commentary').append(recoveredCommentary);
+                recoveredCommentary = '';
+            }
         }
-        if(recoveredCommentary != '') {
-            $('.page[page="'+pageCounter+'"] .commentary').append(recoveredCommentary);
-            recoveredCommentary = '';
-        }
+        
         element = data.he[sectionCounter];
 
         var sectionRef = currentRef+'.'+sectionCounter;
@@ -74,11 +87,11 @@ function addData(data){
         var commentary = data.commentary.filter(el => {
             return el.collectiveTitle.en == commentarist && el.anchorVerse == sectionCounter;
         });
-        var newContainer;
+        var newCommentary = '';
         if (commentary.length > 0) {
             // console.log(commentary);
-            newContainer = $('<div anchorRef="'+sectionRef+'"></div>');
-            $('.page[page="'+pageCounter+'"] .commentary').append(newContainer);
+            newCommentary = $('<div anchorRef="'+sectionRef+'"></div>');
+            $('.page[page="'+pageCounter+'"] .commentary').append(newCommentary);
         }
         commentary.forEach(el => {
             var comment = el.he.split(/[–\.-](.+)/, 2);
@@ -90,53 +103,55 @@ function addData(data){
             $('div[anchorRef="'+sectionRef.split('.').join('\\.')+'"]').append(newEl);
         });
 
-        adjustFloats();
+        var validType = ["mishna in talmud", "mesorat hashas"];
+        var validCat =  ["Mishna", "Tanakh"];
+        var references = data.commentary.filter(el => {
+            return el.anchorVerse == sectionCounter && (validType.includes(el.type) || validCat.includes(el.category));
+        });
+        var newReferences = '';
+        if (references.length > 0) {
+            newReferences = $('<div anchorRef="'+sectionRef+'"></div>');
+            $('.page[page="'+pageCounter+'"] .reference').append(newReferences);
+        }
+        references.forEach(el => {
+            newEl = '<span ref="'+el.ref+'">'+el.sourceHeRef.replace(/׳|״/g, '')+'; </span>';
+            newReferences.append(newEl);
+        });
+
+        numberRefs();
         centerEndofChapter();
+        adjustFloats();
         
-        if(isOverflowed()){
-            newMain.detach();
-            try {
-                newContainer.detach();
-            } catch(e) {
-            }                
-            adjustFloats();
-            if(itsTooEmpty()){
-                pageBeingFixed = pageCounter;
-                
-                newMain.appendTo($('.page[page="'+pageCounter+'"] .mainText'));
-                // Should check for possible overflow but low propability of it happening
-                
-                //Fixing commentary overflow
-                newContainer.children().each(function() {
-                    el = $(this);
-                    el.html(el.text());
-                    finalText = '';
-                    splitted = el.text().split(' ');
-                    for(i = 0; i < splitted.length; i++) {
-                        finalText += '<span class="tempSpan" index="'+i+'">'+splitted[i]+' </span>';
-                    }
-                    el.html(finalText);
-                });
-                newContainer.appendTo($('.page[page="'+pageCounter+'"] .commentary'));
-                overflowed = $('.page[page="'+pageCounter+'"] .commentary .tempSpan').filter((id, element) => {
-                    return $(element)[0].offsetTop + $(element).height() > (pageHeight - (pagePadding * 2));
-                });
-                if(overflowed.length > 0){
-                    savedText = $(overflowed[0]).text() + $(overflowed[0]).nextAll().text();
-                    ref = $(overflowed[0]).parent().attr('ref');
-                    recoveredCommentary = '<span ref="'+ref+'">'+savedText+'</span>';
-                    anchorRef = $(overflowed[0]).parent().parent().attr('anchorRef');
-                    $(overflowed[0]).parent().nextAll().each(function() {
-                        savedText = $(this).text();
-                        ref = $(this).attr('ref');
-                        recoveredCommentary += '<span ref="'+ref+'">'+savedText+'</span>';
+        if(isOverflowed()){                
+                if(newCommentary != ''){
+                    //Fixing commentary overflow
+                    newCommentary.children().each(function() {
+                        el = $(this);
+                        el.html(el.text());
+                        finalText = '';
+                        splitted = el.text().split(' ');
+                        for(i = 0; i < splitted.length; i++) {
+                            finalText += '<span class="tempSpan" index="'+i+'">'+splitted[i]+' </span>';
+                        }
+                        el.html(finalText);
                     });
-                    $('.page[page="'+pageCounter+'"] .commentary').addClass('continues');
-                    $(overflowed[0]).nextAll().remove();
-                    $(overflowed[0]).parent().nextAll().remove();
-                    $(overflowed[0]).remove();
-                    recoveredCommentary = '<div anchorRef="'+anchorRef+'" class="isContinuation">'+recoveredCommentary+'</div>';
+                    adjustFloats();
+                    recoveredCommentary = $('<div anchorRef="'+newCommentary.attr('anchorref')+'" class="isContinuation"></div>');
+                    var wasOverflowed;
+                    while(isOverflowed() && $('.page[page="'+pageCounter+'"] .commentary .tempSpan').length > 0){
+                        currSpan = $('.page[page="'+pageCounter+'"] .commentary .tempSpan').last();
+                        currSpan.detach();
+                        currSpan.prependTo(recoveredCommentary);
+                        adjustFloats();
+                        wasOverflowed = 1;
+                    }
+                    if(wasOverflowed){
+                        recoveredCommentary.html(recoveredCommentary.text());
+                        $('.page[page="'+pageCounter+'"] .commentary').addClass('continues');
+                        wasOverflowed = 0;
+                    }
                 }
+                
 
                 //Fixing mainText overflow
                 finalText = '';
@@ -146,22 +161,35 @@ function addData(data){
                 newMain.html(finalText);
                 ref = newMain.attr('ref');
 
-                overflowed = $('.page[page="'+pageBeingFixed+'"] .mainText .tempSpan').filter((id, element) => {
-                    return $(element)[0].offsetTop + $(element).height() > (pageHeight - (pagePadding * 2));
-                });
-                if (overflowed.length > 0) {
-                    recoveredMain = $(overflowed[0]).text() + $(overflowed[0]).nextAll().text();
-                    recoveredMain = '<span ref="'+ref+'" class="isContinuation">'+recoveredMain+'</span>';
+
+                recoveredMain = $('<span ref="'+ref+'" class="isContinuation"></span>');
+                while(isOverflowed() && $('.page[page="'+pageCounter+'"] .mainText .tempSpan').length > 0){
+                    currSpan = $('.page[page="'+pageCounter+'"] .mainText .tempSpan').last();
+                    currSpan.detach();
+                    currSpan.prependTo(recoveredMain);
+                    adjustFloats();
+                    wasOverflowed = 1;
+                }
+                if(wasOverflowed){
+                    recoveredMain.html(recoveredMain.text());
                     $('.page[page="'+pageCounter+'"] .mainText').addClass('continues');
-                    $(overflowed[0]).nextAll().remove();
-                    $(overflowed[0]).remove();
+                    wasOverflowed = 0;
+                }
+
+                if(newMain.text() == ''){
+                    newMain.remove();
+                    $('.page[page="'+pageCounter+'"] .mainText').removeClass('continues');
+                    $('.page[page="'+pageCounter+'"] .commentary').removeClass('continues');
+                    if(newReferences != ''){
+                        newReferences.detach();
+                        recoveredRef = newReferences;
+                    }
+                    
                 }
                 
-                sectionCounter++;
-            }
+            adjustFloats();
             if(pageCounter < pageLimit){
                 addPage(data);
-                continue;
             } else {
                 if (pageCounter == pageLimit) {
                     finished = 1;
@@ -171,8 +199,6 @@ function addData(data){
                 break;
             }
         }
-
-        sectionCounter++;
     }
 
     if (finished == 1 || data.next == null) {
@@ -185,10 +211,11 @@ function addData(data){
 }
 
 function addPage(data){
+    // if(pageCounter > 0) adjustFloats();
     if (isOverflowed()) addWarning('Unusual Overflow');
     if(pageCounter > 0 && itsTooEmpty()) addWarning('Too empty.');
     pageCounter++;
-    $('body').append('<div class="page" page="'+pageCounter+'"><div class="warning"><ul></ul></div>'+header(data)+'<div class="mainText"></div><div class="commentary"></div></div>');
+    $('body').append('<div class="page" page="'+pageCounter+'"><div class="warning"><ul></ul></div>'+header(data)+'<div class="mainText"></div><div class="commentary"></div><div class="reference"></div></div>');
     console.log('Added page '+pageCounter);
 }
 
@@ -203,7 +230,7 @@ function getUrl(ref){
 
 function isOverflowed(page=pageCounter){
     if(pageCounter==0) return false;
-    return $('.page[page="'+page+'"] .commentary')[0].offsetTop + $('.page[page="'+page+'"] .commentary').outerHeight(true) >= (pageHeight - pagePadding ) || $('.page[page="'+page+'"] .mainText')[0].offsetTop + $('.page[page="'+pageCounter+'"] .mainText').outerHeight(true) >= (pageHeight - pagePadding);
+    return  $('.page[page="'+page+'"] .reference').position().top + $('.page[page="'+page+'"] .reference').outerHeight(true) > (pageHeight - pageVerticalPadding );
 }
 
 function adjustFloats(page=pageCounter) {
@@ -211,6 +238,7 @@ function adjustFloats(page=pageCounter) {
 
     mainText = $('.page[page="'+page+'"] .mainText');
     commentary = $('.page[page="'+page+'"] .commentary');
+    reference = $('.page[page="'+page+'"] .reference');
 
     if(mainText.outerHeight(true) > commentary.outerHeight(true)) {
         if(!mainText.hasClass('lessCommentary')) mainText.addClass('lessCommentary');
@@ -230,7 +258,10 @@ function adjustFloats(page=pageCounter) {
             commentary.detach();
             commentary.appendTo($('.page[page="'+page+'"]'));
         }
-    }    
+    }
+    reference.detach();
+    reference.appendTo($('.page[page="'+page+'"]'));
+
 }
 
 function centerEndofChapter() {
@@ -243,17 +274,46 @@ function centerEndofChapter() {
     
 }
 
+function numberRefs(page=pageCounter) {
+    if($('.page[page="'+page+'"] .reference').text() == ''){
+        $('.page[page="'+page+'"] .reference').css('visibility', 'hidden');
+    } else {
+        $('.page[page="'+page+'"] .reference').css('visibility', 'visible');
+    }
+    counter = 0;
+    $('.page[page="'+page+'"] .mainText span').each((index, el) => {
+        $(el).attr('refNum', '');
+    })
+    $('.page[page="'+page+'"] .reference div').each((index, el) => {
+        counter++;
+        $(el).attr('refNum', counter);
+
+        $('.page[page="'+page+'"] .mainText span[ref="'+$(el).attr('anchorref')+'"]').attr('refNum', counter);
+    });
+}
+
 function addWarning(warning, page=pageCounter) {
     $('.page[page="'+page+'"] .warning ul').append('<li>'+warning+'</li>');
     console.warn(warning+' On page '+page+'.');
 }
 
 function itsTooEmpty(page=pageCounter) {
-    var percent = ($('.page[page="'+page+'"] > *:last-child')[0].offsetTop + $('.page[page="'+page+'"] > *:last-child').height()) * (100 / $('.page[page="'+page+'"]').height());
+    var percent = ($('.page[page="'+page+'"] > *:last-child').position().top + $('.page[page="'+page+'"] > *:last-child').height()) * (100 / $('.page[page="'+page+'"]').height());
     // console.log(biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)));
     // console.log($('.page[page="'+page+'"]').height());
     if (percent < 90) return true;
     return false;
+}
+
+function emptyPage(page=pageCounter){
+    if($('.page[page="'+page+'"] .mainText').text() == ''){
+        return true;
+    }
+    return false;
+}
+
+function contentHeight(page=pageCounter) {
+    return biggerNumber($('.page[page="'+page+'"] .mainText').outerHeight(true), $('.page[page="'+page+'"] .commentary').outerHeight(true)) + $('.page[page="'+page+'"] .reference').outerHeight(true);
 }
 
 function biggerNumber(a, b){

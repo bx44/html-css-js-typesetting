@@ -14,7 +14,6 @@ body {
 }
 
 .toolbar {
-    display: none;
     position: fixed;
     background-color: lightgray;
     width: 100%;
@@ -126,6 +125,37 @@ body {
 
 .commentAnchor {
     font-weight: bold;
+}
+
+.reference {
+    margin-top: 15px;
+}
+
+.reference div {
+    display: inline;
+}
+
+.reference::before {
+    content: "";
+    display: block;
+    width: 25%;
+    border-top: 1px solid black;
+    margin-bottom: 5px;
+}
+
+.mainText span::before {
+    display: inline-block;
+    content: attr(refNum);
+    vertical-align: top;
+    font-size: 0.50em;
+}
+
+.reference div::before {
+    display: inline-block;
+    margin: 1px;
+    content: attr(refNum);
+    vertical-align: super;
+    font-size: 0.83em;
 }
 
 .warning {
