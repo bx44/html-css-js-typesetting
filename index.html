@@ -2,18 +2,21 @@
 <html lang="he">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Typesetting with JS</title>
         <link rel="stylesheet" href="style.css">
-        <script src="jquery-3.4.1.js"></script>
+        <script src="jquery-3.7.1.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
         <script src="script.js"></script>
-        <script src="sefaria.js"></script>
     </head>
     <body>
         <div class="toolbar">
             <ul>
                 <li>
-                    <button id="start">Start</button>
+                    <button id="start" disabled>Start</button>
+                </li>
+                <li>
+                    <span id="status">Cargando fuentes…</span>
                 </li>
             </ul>
         </div>

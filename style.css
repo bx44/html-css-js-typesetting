@@ -38,6 +38,17 @@ body {
     display: block;
 }
 
+#status {
+    font-family: sans-serif;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Marcado temporal usado durante la fragmentación */
+.tempSpan {
+    display: inline;
+}
+
 .page {
     background-color: white;
     box-shadow: 2px 2px 10px 1px black;
@@ -187,8 +198,40 @@ body {
     border-left: 4px solid gray;
 }
 
+/* --------------------------------------------------------------------------
+   Impresión
+   -------------------------------------------------------------------------- */
+
+/* El example.pdf de Barak z"l mide 419.04 x 594.96 pt = 147.8 x 209.9 mm.
+   Eso es A5, y coincide con la caja de 561 x 793 px del CSS (420.75 x 594.75 pt). */
+@page {
+    size: A5;
+    margin: 0;
+}
+
 @media print {
+    body {
+        background: none;
+        margin: 0;
+    }
+
+    .toolbar,
+    .warning,
+    .page::before {
+        display: none;
+    }
+
     .page {
         box-shadow: none;
+        margin: 0;
+        break-after: page;
+        page-break-after: always;   /* navegadores viejos */
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .page:last-of-type {
+        break-after: auto;
+        page-break-after: auto;
     }
 }
