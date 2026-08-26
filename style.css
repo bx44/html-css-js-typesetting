@@ -87,7 +87,10 @@ body {
 .mainText {
     font-family: Vilna;
     font-size: 1.5em;
-    word-spacing: -0.15em;
+    /* Antes: word-spacing: -0.15em. El justificado solo AGREGA espacio, nunca
+       lo quita: en las lineas que ya llenaban el ancho por si solas el hueco
+       quedaba en casi cero y las palabras se pegaban. */
+    word-spacing: normal;
     line-height: 1.2em;
     float: right;
     width: 65%;
@@ -100,7 +103,13 @@ body {
     display: none;
 }
 
+/* La ultima linea se estira solo si el bloque sigue en la pagina siguiente.
+   Cuando el texto termina de verdad, se deja natural. */
 .mainText, .commentary {
+    text-align-last: auto;
+}
+
+.mainText.continues, .commentary.continues {
     text-align-last: justify;
 }
 
@@ -120,7 +129,7 @@ body {
 .commentary {
     font-family: Rashi;
     font-size: 1.15em;
-    word-spacing: -0.1em;
+    word-spacing: normal;
     line-height: 1.2em;
     padding-top: 0.25em;
     /* grid-column: 2; */
@@ -140,6 +149,11 @@ body {
 
 .reference {
     margin-top: 15px;
+    /* Sin font-family caia en el serif por defecto (Times New Roman), que es
+       lo que se ve distinto al resto en el PDF. */
+    font-family: Vilna;
+    font-size: 0.8em;
+    text-align-last: auto;
 }
 
 .reference div {
