@@ -38,6 +38,17 @@ body {
     display: block;
 }
 
+#status {
+    font-family: sans-serif;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Marcado temporal usado durante la fragmentación */
+.tempSpan {
+    display: inline;
+}
+
 .page {
     background-color: white;
     box-shadow: 2px 2px 10px 1px black;
@@ -76,7 +87,10 @@ body {
 .mainText {
     font-family: Vilna;
     font-size: 1.5em;
-    word-spacing: -0.15em;
+    /* Antes: word-spacing: -0.15em. El justificado solo AGREGA espacio, nunca
+       lo quita: en las lineas que ya llenaban el ancho por si solas el hueco
+       quedaba en casi cero y las palabras se pegaban. */
+    word-spacing: normal;
     line-height: 1.2em;
     float: right;
     width: 65%;
@@ -89,7 +103,13 @@ body {
     display: none;
 }
 
+/* La ultima linea se estira solo si el bloque sigue en la pagina siguiente.
+   Cuando el texto termina de verdad, se deja natural. */
 .mainText, .commentary {
+    text-align-last: auto;
+}
+
+.mainText.continues, .commentary.continues {
     text-align-last: justify;
 }
 
@@ -109,7 +129,7 @@ body {
 .commentary {
     font-family: Rashi;
     font-size: 1.15em;
-    word-spacing: -0.1em;
+    word-spacing: normal;
     line-height: 1.2em;
     padding-top: 0.25em;
     /* grid-column: 2; */
@@ -129,6 +149,11 @@ body {
 
 .reference {
     margin-top: 15px;
+    /* Sin font-family caia en el serif por defecto (Times New Roman), que es
+       lo que se ve distinto al resto en el PDF. */
+    font-family: Vilna;
+    font-size: 0.8em;
+    text-align-last: auto;
 }
 
 .reference div {
@@ -187,8 +212,40 @@ body {
     border-left: 4px solid gray;
 }
 
+/* --------------------------------------------------------------------------
+   Impresión
+   -------------------------------------------------------------------------- */
+
+/* El example.pdf de Barak z"l mide 419.04 x 594.96 pt = 147.8 x 209.9 mm.
+   Eso es A5, y coincide con la caja de 561 x 793 px del CSS (420.75 x 594.75 pt). */
+@page {
+    size: A5;
+    margin: 0;
+}
+
 @media print {
+    body {
+        background: none;
+        margin: 0;
+    }
+
+    .toolbar,
+    .warning,
+    .page::before {
+        display: none;
+    }
+
     .page {
         box-shadow: none;
+        margin: 0;
+        break-after: page;
+        page-break-after: always;   /* navegadores viejos */
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .page:last-of-type {
+        break-after: auto;
+        page-break-after: auto;
     }
 }
