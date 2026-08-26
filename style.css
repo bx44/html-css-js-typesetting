@@ -103,13 +103,17 @@ body {
     display: none;
 }
 
-/* La ultima linea se estira solo si el bloque sigue en la pagina siguiente.
-   Cuando el texto termina de verdad, se deja natural. */
+/* La ultima linea se estira solo en el texto principal, y solo cuando el
+   bloque sigue en la pagina siguiente.
+   En el comentario NO se estira: el corte se calcula contra un texto principal
+   todavia sin recortar, asi que la ultima linea del comentario suele quedar
+   incompleta y el justificado la abria de forma grotesca. Cuando el corte se
+   haga de forma iterativa (ver pendientes), se puede volver a activar aqui. */
 .mainText, .commentary {
     text-align-last: auto;
 }
 
-.mainText.continues, .commentary.continues {
+.mainText.continues {
     text-align-last: justify;
 }
 
