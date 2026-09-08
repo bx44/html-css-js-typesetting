@@ -84,7 +84,34 @@ body {
     font-weight: bold;
 }
 
+/* ---------------------------------------------------------------------------
+   Maqueta de tres columnas.
+
+   Cada comentario ocupa su mitad de la caja. Dentro de esa mitad hay una
+   "muesca" invisible pegada al centro, de la altura de la Guemara, alrededor
+   de la cual fluye el texto y forma la L. Las dos muescas juntas recortan el
+   hueco central donde se coloca la Guemara en posicion absoluta.
+
+   script.js iguala la altura de las muescas a la de la Guemara.
+   --------------------------------------------------------------------------- */
+
+.body {
+    position: relative;
+}
+
+.body::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
 .mainText {
+    position: absolute;
+    top: 0;
+    right: 26.5%;
+    width: 47%;
+    box-sizing: border-box;
+    padding: 0 8px;
     font-family: Vilna;
     font-size: 1.5em;
     /* Antes: word-spacing: -0.15em. El justificado solo AGREGA espacio, nunca
@@ -92,55 +119,56 @@ body {
        quedaba en casi cero y las palabras se pegaban. */
     word-spacing: normal;
     line-height: 1.2em;
-    float: right;
-    width: 65%;
-    padding-left: 10px;
-    padding-bottom: 10px;
-    /* grid-column: 1; */
+    text-align: justify;
 }
 
-.mainText:empty {
-    display: none;
-}
-
-/* La ultima linea se estira solo si el bloque sigue en la pagina siguiente.
-   Cuando el texto termina de verdad, se deja natural. */
-.mainText, .commentary {
-    text-align-last: auto;
-}
-
-.mainText.continues, .commentary.continues {
-    text-align-last: justify;
-}
-
-.mainText.lessCommentary {
-    float: initial;
-    width: initial;
-    padding: initial;   
-}
-
-.commentary.lessCommentary {
-    float: left;
-    width: 35%;
-    padding-right: 10px;
-    padding-bottom: 10px;
-}
-
-.commentary {
+.side {
     font-family: Rashi;
     font-size: 1.15em;
     word-spacing: normal;
     line-height: 1.2em;
-    padding-top: 0.25em;
-    /* grid-column: 2; */
+    text-align: justify;
+    box-sizing: border-box;
 }
 
-.commentary:empty {
-    display: none;
+.commentary {
+    float: right;
+    width: 50%;
+    padding-left: 6px;
 }
 
-.commentary > div {
+.tosafot {
+    float: left;
+    width: 50%;
+    padding-right: 6px;
+}
+
+.commentary .notch {
+    float: left;
+    width: 47%;
+}
+
+.tosafot .notch {
+    float: right;
+    width: 47%;
+}
+
+.notch {
+    height: 0;
+}
+
+.side > div.comment {
     display: inline;
+}
+
+/* La ultima linea se estira solo en el texto principal, y solo cuando el
+   bloque sigue en la pagina siguiente. En los comentarios se deja natural. */
+.mainText, .side {
+    text-align-last: auto;
+}
+
+.mainText.continues {
+    text-align-last: justify;
 }
 
 .commentAnchor {
@@ -156,7 +184,7 @@ body {
     text-align-last: auto;
 }
 
-.reference div {
+.reference div.comment {
     display: inline;
 }
 
@@ -175,7 +203,7 @@ body {
     font-size: 0.50em;
 }
 
-.reference div::before {
+.reference div.comment::before {
     display: inline-block;
     margin: 1px;
     content: attr(refNum);
